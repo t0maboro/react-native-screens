@@ -122,11 +122,10 @@
   [self validateColumns:currentColumns];
   [self validateInspectors:currentInspectors];
 
-  NSMutableArray<RNSSplitNavigationController *> *currentViewControllers =
+  NSMutableArray<UINavigationController *> *currentViewControllers =
       [NSMutableArray arrayWithCapacity:currentColumns.count];
   for (RNSSplitScreenComponentView *column in currentColumns) {
-    [currentViewControllers addObject:[[RNSSplitNavigationController alloc] initWithRootViewController:column.controller
-                                                                             frameOriginChangeDelegate:self]];
+    [currentViewControllers addObject:[self navigationControllerForColumn:column]];
   }
 
   self.viewControllers = currentViewControllers;
@@ -160,6 +159,18 @@
   /** The assumption is that it should come in a single batch and it won't cause any delays in rendering the content. */
   [navigationController setNavigationBarHidden:YES animated:NO];
   [navigationController setNavigationBarHidden:NO animated:NO];
+}
+
+- (UINavigationController *)navigationControllerForColumn:(RNSSplitScreenComponentView *)column
+{
+  UIView<RNSNavigationControllerProviding> *provider = column.navigationControllerProvider;
+  if (provider != nil) {
+    // Mounting observers run in unspecified order; the controller must be populated before the split takes it.
+    [provider flushPendingUpdates];
+    return provider.navigationController;
+  }
+  return [[RNSSplitNavigationController alloc] initWithRootViewController:column.controller
+                                                frameOriginChangeDelegate:self];
 }
 
 #pragma mark - Helpers
@@ -333,13 +344,14 @@
     UIViewController *viewController = [self viewControllerForColumn:column];
     RCTAssert(viewController != nil, @"[RNScreens] viewController for column %ld is nil.", (long)column);
 
-    RNSSplitNavigationController *splitNavigationController =
-        [viewController isKindOfClass:RNSSplitNavigationController.class]
-        ? (RNSSplitNavigationController *)viewController
-        : nil;
-    RCTAssert(splitNavigationController != nil,
-              @"[RNScreens] Expected RNSSplitNavigationController but got %@",
-              NSStringFromClass(viewController.class));
+    if (![viewController isKindOfClass:RNSSplitNavigationController.class]) {
+      // Column backed by a provided controller, see `RNSSplitScreenComponentView`.
+      RCTAssert([viewController isKindOfClass:UINavigationController.class],
+                @"[RNScreens] Expected UINavigationController but got %@",
+                NSStringFromClass(viewController.class));
+      continue;
+    }
+    RNSSplitNavigationController *splitNavigationController = (RNSSplitNavigationController *)viewController;
 
     UIViewController *maybeSplitScreenController = splitNavigationController.topViewController;
     RCTAssert(
