@@ -81,6 +81,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)refreshSecondaryNavBar;
 
+/**
+ * @brief Forwards an activity mode change of a screen to its column.
+ *
+ * @param column Index of the column, or `-1` for the inspector.
+ */
+- (void)screenDidChangeActivityMode:(UIView<RNSStackScreenProviding> *)screen inColumn:(NSInteger)column;
+
 #pragma mark - Public setters
 
 /**

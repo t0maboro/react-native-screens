@@ -1,9 +1,11 @@
 #import "RNSSplitScreenComponentView.h"
 #import <React/RCTAssert.h>
+#import <React/RCTConversions.h>
 #import <React/RCTSurfaceTouchHandler.h>
 #import <react/renderer/components/rnscreens/RNSSplitScreenComponentDescriptor.h>
 #import "RNSConversions.h"
 #import "RNSSafeAreaViewNotifications.h"
+#import "RNSSplitHostComponentView.h"
 #import "RNSSplitScreenComponentEventEmitter.h"
 #import "RNSSplitScreenController.h"
 #import "RNSSplitScreenShadowStateProxy.h"
@@ -88,6 +90,16 @@ namespace react = facebook::react;
   _props = defaultProps;
 
   _columnType = RNSSplitScreenColumnTypeColumn;
+  _column = -1;
+  _activityMode = RNSStackScreenActivityModeAttached;
+  _screenKey = nil;
+}
+
+#pragma mark - RNSStackScreenProviding
+
+- (nullable RNSStackHeaderConfigComponentView *)headerConfig
+{
+  return nil;
 }
 
 - (void)registerForFrameCorrection:(UIView *)view
@@ -139,6 +151,11 @@ namespace react = facebook::react;
 - (void)splitScreenControllerDidDisappear:(RNSSplitScreenController *)controller
 {
   [_reactEventEmitter emitOnDidDisappear];
+}
+
+- (void)splitScreenController:(RNSSplitScreenController *)controller didDismissNatively:(BOOL)isNativeDismiss
+{
+  [_reactEventEmitter emitOnDismissWithNativeDismiss:isNativeDismiss];
 }
 
 #pragma mark - RNSSafeAreaProviding
@@ -194,6 +211,21 @@ namespace react = facebook::react;
     _columnType = rnscreens::conversion::RNSSplitScreenColumnTypeFromScreenProp(newComponentProps.columnType);
   }
 
+  if (oldComponentProps.column != newComponentProps.column) {
+    _column = newComponentProps.column;
+  }
+
+  if (oldComponentProps.screenKey != newComponentProps.screenKey) {
+    _screenKey = RCTNSStringFromStringNilIfEmpty(newComponentProps.screenKey);
+  }
+
+  if (oldComponentProps.activityMode != newComponentProps.activityMode) {
+    _activityMode = newComponentProps.activityMode == react::RNSSplitScreenActivityMode::Attached
+        ? RNSStackScreenActivityModeAttached
+        : RNSStackScreenActivityModeDetached;
+    [self.splitHost splitScreenDidChangeActivityMode:self];
+  }
+
   [super updateProps:props oldProps:oldProps];
 }
 
@@ -208,8 +240,15 @@ namespace react = facebook::react;
 {
   // Controller keeps the strong reference to the component via the `.view` property.
   // Therefore, we need to enforce a proper cleanup, breaking the retain cycle,
-  // when we want to destroy the component.
-  _controller = nil;
+  // when we want to destroy the component. It is deferred so that a pending pop of the screen, applied after the
+  // mounting transaction, still finds the controller.
+  __weak auto weakSelf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    auto strongSelf = weakSelf;
+    if (strongSelf) {
+      strongSelf->_controller = nil;
+    }
+  });
 }
 
 #pragma mark - Dynamic frameworks support

@@ -22,6 +22,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (nonnull NSMutableArray<RNSSplitScreenComponentView *> *)reactSubviews;
 
+- (void)splitScreenDidChangeActivityMode:(nonnull RNSSplitScreenComponentView *)screen;
+
 @property (nonatomic, nonnull, strong, readonly) RNSSplitHostController *splitHostController;
 
 @end

@@ -103,13 +103,13 @@ static const CGFloat epsilon = 1e-6;
 
 - (int)getNumberOfColumns
 {
-  int numberOfColumns = 0;
-  for (RNSSplitScreenComponentView *component in _reactSubviews) {
-    if (component.columnType == RNSSplitScreenColumnTypeColumn) {
-      numberOfColumns++;
-    }
-  }
-  return numberOfColumns;
+  return (int)[self screensByColumn].count;
+}
+
+- (void)splitScreenDidChangeActivityMode:(RNSSplitScreenComponentView *)screen
+{
+  NSInteger column = screen.columnType == RNSSplitScreenColumnTypeInspector ? -1 : screen.column;
+  [_controller screenDidChangeActivityMode:screen inColumn:column];
 }
 
 - (void)setupController
@@ -409,25 +409,55 @@ RNS_IGNORE_SUPER_CALL_END
 
 #pragma mark - RNSSplitHostColumnsProvider
 
-- (NSArray<RNSSplitScreenController *> *)columnControllers
+/**
+ * Screens are grouped by their `column` prop, in column order; screens of one column keep React order. Screens
+ * without the prop (`column < 0`) form one column each, in React order, after the indexed columns.
+ */
+- (NSArray<NSArray<UIView<RNSStackScreenProviding> *> *> *)screensByColumn
 {
-  return [self controllersOfColumnsWithType:RNSSplitScreenColumnTypeColumn];
+  NSMutableDictionary<NSNumber *, NSMutableArray<UIView<RNSStackScreenProviding> *> *> *screensByIndex =
+      [NSMutableDictionary dictionary];
+  NSMutableArray<NSArray<UIView<RNSStackScreenProviding> *> *> *standaloneColumns = [NSMutableArray array];
+
+  for (RNSSplitScreenComponentView *screen in _reactSubviews) {
+    if (screen.columnType != RNSSplitScreenColumnTypeColumn) {
+      continue;
+    }
+    if (screen.column < 0) {
+      [standaloneColumns addObject:@[ screen ]];
+      continue;
+    }
+    NSMutableArray<UIView<RNSStackScreenProviding> *> *screens = screensByIndex[@(screen.column)];
+    if (screens == nil) {
+      screens = [NSMutableArray array];
+      screensByIndex[@(screen.column)] = screens;
+    }
+    [screens addObject:screen];
+  }
+
+  NSArray<NSNumber *> *indices = [screensByIndex.allKeys sortedArrayUsingSelector:@selector(compare:)];
+  NSMutableArray<NSArray<UIView<RNSStackScreenProviding> *> *> *columns =
+      [NSMutableArray arrayWithCapacity:indices.count + standaloneColumns.count];
+  for (NSNumber *index in indices) {
+    RCTAssert(index.integerValue == (NSInteger)columns.count,
+              @"[RNScreens] Split column indices must be contiguous, missing column %ld",
+              (long)columns.count);
+    [columns addObject:screensByIndex[index]];
+  }
+  [columns addObjectsFromArray:standaloneColumns];
+
+  return columns;
 }
 
-- (NSArray<RNSSplitScreenController *> *)inspectorControllers
+- (NSArray<UIView<RNSStackScreenProviding> *> *)inspectorScreens
 {
-  return [self controllersOfColumnsWithType:RNSSplitScreenColumnTypeInspector];
-}
-
-- (NSArray<RNSSplitScreenController *> *)controllersOfColumnsWithType:(RNSSplitScreenColumnType)columnType
-{
-  NSMutableArray<RNSSplitScreenController *> *controllers = [NSMutableArray array];
-  for (RNSSplitScreenComponentView *column in _reactSubviews) {
-    if (column.columnType == columnType) {
-      [controllers addObject:column.controller];
+  NSMutableArray<UIView<RNSStackScreenProviding> *> *inspectors = [NSMutableArray array];
+  for (RNSSplitScreenComponentView *screen in _reactSubviews) {
+    if (screen.columnType == RNSSplitScreenColumnTypeInspector) {
+      [inspectors addObject:screen];
     }
   }
-  return controllers;
+  return inspectors;
 }
 
 #pragma mark - RNSSplitHostControllerEventsDelegate

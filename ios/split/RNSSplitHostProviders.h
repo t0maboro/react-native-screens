@@ -3,10 +3,9 @@
 #import <UIKit/UIKit.h>
 #import "RNSDefines.h"
 #import "RNSEnums.h"
+#import "RNSStackScreenProviding.h"
 
 NS_ASSUME_NONNULL_BEGIN
-
-@class RNSSplitScreenController;
 
 /**
  * @brief Configuration of the UISplitViewController appearance.
@@ -55,12 +54,13 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 /**
- * @brief Controllers of the columns mounted in the host, in React order, split by column type.
+ * @brief Screens mounted in the host: grouped by column in column order (each group in React order), and the
+ * inspector screens.
  */
 @protocol RNSSplitHostColumnsProvider <NSObject>
 
-- (NSArray<RNSSplitScreenController *> *)columnControllers;
-- (NSArray<RNSSplitScreenController *> *)inspectorControllers;
+- (NSArray<NSArray<UIView<RNSStackScreenProviding> *> *> *)screensByColumn;
+- (NSArray<UIView<RNSStackScreenProviding> *> *)inspectorScreens;
 
 @end
 
