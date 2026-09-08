@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
-import { Split } from 'react-native-screens';
+import { Split, Stack } from 'react-native-screens';
 import { createScenario } from '@apps/tests/shared/helpers';
 import { scenarioDescription } from './scenario-description';
 
@@ -68,6 +68,7 @@ function TestSplitStackColumns() {
             screenKey={screen.key}
             activityMode={screen.activityMode}
             onDismiss={() => remove(column, screen.key)}>
+            <Stack.HeaderConfig title={title(screen.key)} />
             <ScreenContent
               title={title(screen.key)}
               hue={hue + index * 25}

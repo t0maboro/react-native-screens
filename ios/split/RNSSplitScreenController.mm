@@ -4,6 +4,7 @@
 #import "RNSSplitHostComponentView.h"
 #import "RNSSplitHostController.h"
 #import "RNSSplitScreenComponentView.h"
+#import "RNSStackScreenHeaderCoordinator.h"
 
 @implementation RNSSplitScreenController {
   RNSSplitScreenComponentView *_splitScreenComponentView;
@@ -13,6 +14,7 @@
 {
   if (self = [super init]) {
     _splitScreenComponentView = splitScreenComponentView;
+    _headerCoordinator = [[RNSStackScreenHeaderCoordinator alloc] initWithScreenController:self];
   }
 
   return self;
@@ -96,6 +98,13 @@
 - (void)viewWillAppear:(BOOL)animated
 {
   [super viewWillAppear:animated];
+  // Without a header config the column keeps the system navigation bar, so the coordinator is not consulted.
+  if (_splitScreenComponentView.headerConfig != nil) {
+    [_headerCoordinator updateNavigationBarVisibilityAnimated:animated];
+#if !TARGET_OS_TV
+    [_headerCoordinator updateBackButtonMenuEnabled];
+#endif // !TARGET_OS_TV
+  }
   [_delegate splitScreenControllerWillAppear:self];
 }
 
@@ -124,6 +133,10 @@
   if (parent != nil) {
     return;
   }
+
+#if !TARGET_OS_TV
+  [_headerCoordinator clearAppliedBackButtonConfig];
+#endif // !TARGET_OS_TV
 
   BOOL isNativeDismiss = _splitScreenComponentView.activityMode == RNSStackScreenActivityModeAttached;
   if (isNativeDismiss) {

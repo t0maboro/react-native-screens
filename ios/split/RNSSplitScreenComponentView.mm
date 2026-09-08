@@ -9,6 +9,8 @@
 #import "RNSSplitScreenComponentEventEmitter.h"
 #import "RNSSplitScreenController.h"
 #import "RNSSplitScreenShadowStateProxy.h"
+#import "RNSStackHeaderConfigComponentView.h"
+#import "RNSStackScreenHeaderCoordinator.h"
 
 namespace react = facebook::react;
 
@@ -20,6 +22,7 @@ namespace react = facebook::react;
   RNSSplitScreenController *_Nullable _controller;
   RNSSplitScreenShadowStateProxy *_Nonnull _shadowStateProxy;
   RCTSurfaceTouchHandler *_Nullable _touchHandler;
+  RNSStackHeaderConfigComponentView *__weak _Nullable _headerConfig;
   NSMutableSet<UIView *> *_viewsForFrameCorrection;
 }
 
@@ -99,7 +102,12 @@ namespace react = facebook::react;
 
 - (nullable RNSStackHeaderConfigComponentView *)headerConfig
 {
-  return nil;
+  return _headerConfig;
+}
+
+- (nullable RNSStackScreenHeaderCoordinator *)headerCoordinator
+{
+  return _controller.headerCoordinator;
 }
 
 - (void)registerForFrameCorrection:(UIView *)view
@@ -192,6 +200,29 @@ namespace react = facebook::react;
   // There won't be tens of instances of this component usually & it's easier for now.
   // We could consider enabling it someday though.
   return NO;
+}
+
+- (void)mountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
+{
+  if ([childComponentView isKindOfClass:RNSStackHeaderConfigComponentView.class]) {
+    _headerConfig = (RNSStackHeaderConfigComponentView *)childComponentView;
+    _headerConfig.headerCoordinator = _controller.headerCoordinator;
+    _controller.headerCoordinator.configDataProvider = _headerConfig;
+    _controller.headerCoordinator.frameChangeDelegate = _headerConfig;
+    _controller.headerCoordinator.eventsDelegate = _headerConfig;
+    _controller.headerCoordinator.imageLoader = _headerConfig;
+  }
+  [super mountChildComponentView:childComponentView index:index];
+}
+
+- (void)unmountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
+{
+  if ([childComponentView isKindOfClass:RNSStackHeaderConfigComponentView.class]) {
+    [_controller.headerCoordinator clearHeaderConfiguration];
+    _headerConfig.headerCoordinator = nil;
+    _headerConfig = nil;
+  }
+  [super unmountChildComponentView:childComponentView index:index];
 }
 
 - (void)updateState:(react::State::Shared const &)state oldState:(react::State::Shared const &)oldState

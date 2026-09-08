@@ -4,6 +4,7 @@
 
 @class RNSSplitScreenComponentView;
 @class RNSSplitScreenController;
+@class RNSStackScreenHeaderCoordinator;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -45,6 +46,9 @@ NS_ASSUME_NONNULL_BEGIN
 @interface RNSSplitScreenController : UIViewController
 
 @property (nonatomic, weak, nullable) id<RNSSplitScreenControllerDelegate> delegate;
+
+/** @brief Applies the header config mounted in the screen to its navigation item. */
+@property (nonatomic, strong, readonly, nonnull) RNSStackScreenHeaderCoordinator *headerCoordinator;
 
 - (instancetype)initWithSplitScreenComponentView:(RNSSplitScreenComponentView *)splitScreenComponentView;
 
