@@ -13,7 +13,7 @@
 #import "RNSContainerHelpers.h"
 #import "RNSStackHeaderConfigComponentView.h"
 #import "RNSStackNavigationController.h"
-#import "RNSStackOperationCoordinator.h"
+#import "RNSStackCoordinator.h"
 #import "RNSStackScreenComponentView.h"
 
 namespace react = facebook::react;
@@ -22,9 +22,7 @@ namespace react = facebook::react;
 @end
 
 @implementation RNSStackHostComponentView {
-  RNSStackNavigationController *_Nonnull _stackNavigationController;
-  RNSStackOperationCoordinator *_Nonnull _stackOperationCoordinator;
-  NSMutableArray<RNSStackScreenComponentView *> *_Nonnull _renderedScreens;
+  RNSStackCoordinator *_Nonnull _stackCoordinator;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -40,9 +38,7 @@ namespace react = facebook::react;
   static const auto defaultProps = std::make_shared<const react::RNSStackHostProps>();
   _props = defaultProps;
 
-  _stackNavigationController = [RNSStackNavigationController new];
-  _stackOperationCoordinator = [RNSStackOperationCoordinator new];
-  _renderedScreens = [NSMutableArray new];
+  _stackCoordinator = [RNSStackCoordinator new];
 }
 
 #pragma mark - UIKit Callbacks
@@ -50,12 +46,13 @@ namespace react = facebook::react;
 - (void)didMoveToWindow
 {
   RNSLog(@"[RNScreens] StackHost [%ld] attached to window", self.tag);
-  if (self.window != nil && _stackNavigationController.parentViewController == nil) {
-    BOOL mountResult = [RNSContainerHelpers addChildViewController:_stackNavigationController
+  RNSStackNavigationController *navigationController = _stackCoordinator.navigationController;
+  if (self.window != nil && navigationController.parentViewController == nil) {
+    BOOL mountResult = [RNSContainerHelpers addChildViewController:navigationController
                                           toViewControllerManaging:self.reactSuperview
                                                  withContainerView:self];
     if (mountResult) {
-      [self setupViewConstraintsForController:_stackNavigationController];
+      [self setupViewConstraintsForController:navigationController];
     }
   }
 }
@@ -64,7 +61,7 @@ namespace react = facebook::react;
 // cannot be clicked, so we check it by ourselves
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-  if (CGRectContainsPoint(_stackNavigationController.navigationBar.frame, point)) {
+  if (CGRectContainsPoint(_stackCoordinator.navigationController.navigationBar.frame, point)) {
     RNSStackHeaderConfigComponentView *headerConfig = [self requireTopScreenHeaderConfig];
     CGPoint convertedPoint = [self convertPoint:point toView:headerConfig];
     UIView *headerHitTestResult = [headerConfig hitTest:convertedPoint withEvent:event];
@@ -79,18 +76,7 @@ namespace react = facebook::react;
 
 - (void)stackScreenChangedActivityMode:(nonnull RNSStackScreenComponentView *)stackScreen
 {
-  RCTAssert(stackScreen != nil, @"[RNScreens] Expected non nill stackScreen");
-  switch (stackScreen.activityMode) {
-    case RNSStackScreenActivityModeAttached:
-      [_stackOperationCoordinator addPushOperation:stackScreen];
-      break;
-    case RNSStackScreenActivityModeDetached:
-      [_stackOperationCoordinator addPopOperation:stackScreen];
-      break;
-    default:
-      RCTAssert(NO, @"[RNScreens] Unexpected value of activityMode: %d", stackScreen.activityMode);
-      return;
-  }
+  [_stackCoordinator screenDidChangeActivityMode:stackScreen];
 }
 
 #pragma mark - RCTComponentViewProtocol
@@ -104,8 +90,7 @@ namespace react = facebook::react;
 
   auto *childScreen = static_cast<RNSStackScreenComponentView *>(childComponentView);
   childScreen.stackHost = self;
-  [_renderedScreens insertObject:childScreen atIndex:index];
-  [self addPushOperationIfNeeded:childScreen];
+  [_stackCoordinator insertScreen:childScreen atIndex:index];
 }
 
 - (void)unmountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
@@ -116,20 +101,8 @@ namespace react = facebook::react;
             RNSStackScreenComponentView.class);
 
   auto *childScreen = static_cast<RNSStackScreenComponentView *>(childComponentView);
-  [_renderedScreens removeObject:childScreen];
   childScreen.stackHost = nil;
-  [self addPopOperationIfNeeded:childScreen];
-}
-
-- (void)addPopOperationIfNeeded:(nonnull RNSStackScreenComponentView *)stackScreen
-{
-  if (stackScreen.activityMode == RNSStackScreenActivityModeAttached && !stackScreen.isNativelyDismissed) {
-    // This shouldn't happen in typical scenarios but it can happen with fast-refresh.
-    [_stackOperationCoordinator addPopOperation:stackScreen];
-  } else {
-    RNSLog(@"[RNScreens] ignoring pop operation of %@, already not attached or natively dismissed",
-           stackScreen.screenKey);
-  }
+  [_stackCoordinator removeScreen:childScreen];
 }
 
 + (react::ComponentDescriptorProvider)componentDescriptorProvider
@@ -146,13 +119,6 @@ namespace react = facebook::react;
 
 #pragma mark - Utils
 
-- (void)addPushOperationIfNeeded:(nonnull RNSStackScreenComponentView *)stackScreen
-{
-  if (stackScreen.activityMode == RNSStackScreenActivityModeAttached) {
-    [_stackOperationCoordinator addPushOperation:stackScreen];
-  }
-}
-
 - (void)setupViewConstraintsForController:(nonnull UIViewController *)controller
 {
   // Enable auto-layout to ensure valid size of stack controller view.
@@ -167,9 +133,10 @@ namespace react = facebook::react;
 
 - (RNSStackHeaderConfigComponentView *)requireTopScreenHeaderConfig
 {
-  RCTAssert([_stackNavigationController.topViewController.view isKindOfClass:[RNSStackScreenComponentView class]],
+  UIViewController *topViewController = _stackCoordinator.navigationController.topViewController;
+  RCTAssert([topViewController.view isKindOfClass:[RNSStackScreenComponentView class]],
             @"[RNScreens] Expected top screen to be a react component view of type RNSStackScreenComponentView");
-  auto screenView = (RNSStackScreenComponentView *)_stackNavigationController.topViewController.view;
+  auto screenView = (RNSStackScreenComponentView *)topViewController.view;
 
   return screenView.headerConfig;
 }
@@ -179,8 +146,7 @@ namespace react = facebook::react;
 - (void)mountingTransactionDidMount:(const facebook::react::MountingTransaction &)transaction
                withSurfaceTelemetry:(const facebook::react::SurfaceTelemetry &)surfaceTelemetry
 {
-  [_stackOperationCoordinator executePendingOperationsIfNeeded:_stackNavigationController
-                                           withRenderedScreens:_renderedScreens];
+  [_stackCoordinator flushPendingUpdates];
 }
 
 #pragma mark - Dynamic frameworks support
