@@ -5,6 +5,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class RNSHeaderConfigComponentView;
+@class RNSHeaderCoordinator;
 
 typedef NS_ENUM(int, RNSStackScreenActivityMode) {
   RNSStackScreenActivityModeDetached = 0,
@@ -28,6 +29,8 @@ typedef NS_ENUM(int, RNSStackScreenActivityMode) {
 - (nullable NSString *)screenKey;
 
 - (nullable RNSHeaderConfigComponentView *)headerConfig;
+
+- (nullable RNSHeaderCoordinator *)headerCoordinator;
 
 @end
 

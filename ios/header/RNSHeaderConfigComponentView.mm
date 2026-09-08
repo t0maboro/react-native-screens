@@ -11,8 +11,7 @@
 #import "RNSHeaderMenuUpdateOptions.h"
 #import "RNSImageLoadingHelper.h"
 #import "RNSStackNavigationController.h"
-#import "RNSStackScreenComponentView.h"
-#import "RNSStackScreenController.h"
+#import "RNSStackScreenProviding.h"
 
 #import <React/RCTConversions.h>
 #import <React/RCTConvert.h>
@@ -509,23 +508,25 @@ static void RNSAssertIsValidHeaderChild(UIView *child)
   return rnscreens::conversion::RNSConvertFollyDynamicToId(appearanceProp);
 }
 
+- (id<RNSStackScreenProviding>)requireScreen
+{
+  RCTAssert([self.superview conformsToProtocol:@protocol(RNSStackScreenProviding)],
+            @"[RNScreens] Header Config should be a direct child of a stack screen, got %@",
+            self.superview);
+  return (id<RNSStackScreenProviding>)self.superview;
+}
+
 - (nullable RNSHeaderCoordinator *)headerCoordinator
 {
   if (self.superview == nil) {
     return nil;
   }
-  RCTAssert([self.superview isKindOfClass:RNSStackScreenComponentView.class],
-            @"[RNScreens] Header Config should be a direct child of RNSStackScreenComponentView");
-  RNSStackScreenComponentView *screen = (RNSStackScreenComponentView *)self.superview;
-  return screen.controller.headerCoordinator;
+  return [[self requireScreen] headerCoordinator];
 }
 
 - (RNSStackNavigationController *)requireNavigationController
 {
-  RCTAssert([self.superview isKindOfClass:RNSStackScreenComponentView.class],
-            @"[RNScreens] Header Config should be a direct child of RNSStackScreenComponentView");
-  RNSStackScreenController *screenController = static_cast<RNSStackScreenComponentView *>(self.superview).controller;
-  UINavigationController *navController = screenController.navigationController;
+  UINavigationController *navController = [[self requireScreen] controller].navigationController;
   RCTAssert(navController != nil, @"[RNScreens] NavigationController should be initialized at this point");
   RCTAssert([navController isKindOfClass:RNSStackNavigationController.class],
             @"[RNScreens] NavigationController should be instance of RNSStackNavigationController");
