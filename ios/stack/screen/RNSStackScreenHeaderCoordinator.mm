@@ -10,10 +10,9 @@
 #import "RNSStackHeaderMenuTrackerRegistry.h"
 #import "RNSStackNavigationBarCoordinator.h"
 #import "RNSStackNavigationController.h"
-#import "RNSStackScreenController.h"
 
 @implementation RNSStackScreenHeaderCoordinator {
-  __weak RNSStackScreenController *_Nullable _screenController;
+  __weak UIViewController *_Nullable _screenController;
 
 #if !TARGET_OS_TV
   // Navigation item of the screen below, onto which the back button
@@ -29,7 +28,7 @@
   NSMutableDictionary<NSString *, UIBarButtonItem *> *_Nonnull _barButtonItemsByItemId;
 }
 
-- (instancetype)initWithScreenController:(RNSStackScreenController *)controller
+- (instancetype)initWithScreenController:(UIViewController *)controller
 {
   if (self = [super init]) {
     _screenController = controller;
@@ -60,7 +59,7 @@
     return;
   }
 
-  RNSStackScreenController *controller = [self requireScreenController];
+  UIViewController *controller = [self requireScreenController];
 
   [_leadingBarButtonItems removeAllObjects];
   [_trailingBarButtonItems removeAllObjects];
@@ -170,7 +169,7 @@
     return;
   }
 
-  RNSStackScreenController *controller = [self requireScreenController];
+  UIViewController *controller = [self requireScreenController];
 
   switch (targetItem.placement) {
     case RNSHeaderItemPlacementLeading: {
@@ -310,7 +309,7 @@
   [_barButtonItemsByItemId removeAllObjects];
   [_trackerRegistry clear];
 
-  RNSStackScreenController *controller = [self requireScreenController];
+  UIViewController *controller = [self requireScreenController];
   UINavigationItem *navItem = controller.navigationItem;
 
   navItem.title = nil;
@@ -401,7 +400,7 @@
 
 #pragma mark - Private
 
-- (RNSStackScreenController *)requireScreenController
+- (UIViewController *)requireScreenController
 {
   RCTAssert(_screenController != nil, @"[RNScreens] Screen Controller cannot be nil");
   return _screenController;
@@ -409,7 +408,7 @@
 
 - (nullable RNSStackNavigationController *)getNavigationController
 {
-  RNSStackScreenController *screenController = [self requireScreenController];
+  UIViewController *screenController = [self requireScreenController];
   UINavigationController *navController = screenController.navigationController;
   if (navController == nil) {
     return nil;
@@ -420,7 +419,7 @@
   return (RNSStackNavigationController *)navController;
 }
 
-- (void)applyConfigPropertiesForController:(RNSStackScreenController *)controller
+- (void)applyConfigPropertiesForController:(UIViewController *)controller
 {
   UINavigationItem *navItem = controller.navigationItem;
 
@@ -455,7 +454,7 @@
 }
 
 #if !TARGET_OS_TV
-- (void)applyBackButtonConfigForController:(RNSStackScreenController *)controller
+- (void)applyBackButtonConfigForController:(UIViewController *)controller
 {
   NSArray<UIViewController *> *viewControllers = controller.navigationController.viewControllers;
   NSUInteger index = [viewControllers indexOfObject:controller];
@@ -483,7 +482,7 @@
 - (void)applyItemsWithTitleView:(nullable UIView *)titleView
                    subtitleView:(nullable UIView *)subtitleView
               largeSubtitleView:(nullable UIView *)largeSubtitleView
-                  forController:(RNSStackScreenController *)controller
+                  forController:(UIViewController *)controller
 {
   UINavigationItem *navItem = controller.navigationItem;
 
@@ -504,7 +503,7 @@
 #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
 }
 
-- (void)applyTitleMenuForController:(RNSStackScreenController *)controller
+- (void)applyTitleMenuForController:(UIViewController *)controller
 {
 #if !TARGET_OS_TV
   if (@available(iOS 16.0, *)) {

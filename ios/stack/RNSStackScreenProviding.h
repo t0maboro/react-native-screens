@@ -5,6 +5,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class RNSStackHeaderConfigComponentView;
+@class RNSStackScreenHeaderCoordinator;
 
 typedef NS_ENUM(int, RNSStackScreenActivityMode) {
   RNSStackScreenActivityModeDetached = 0,
@@ -35,6 +36,9 @@ typedef NS_ENUM(int, RNSStackScreenActivityMode) {
 - (void)setIsNativelyDismissed:(BOOL)isNativelyDismissed;
 
 - (nullable RNSStackHeaderConfigComponentView *)headerConfig;
+
+/** @brief Coordinator applying the header config of this screen to its navigation item. */
+- (nullable RNSStackScreenHeaderCoordinator *)headerCoordinator;
 
 @end
 

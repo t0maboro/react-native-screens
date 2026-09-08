@@ -11,8 +11,7 @@
 #import "RNSStackHeaderMenuMapper.h"
 #import "RNSStackHeaderMenuUpdateOptions.h"
 #import "RNSStackNavigationController.h"
-#import "RNSStackScreenComponentView.h"
-#import "RNSStackScreenController.h"
+#import "RNSStackScreenProviding.h"
 
 #import <React/RCTConversions.h>
 #import <React/RCTConvert.h>
@@ -20,8 +19,8 @@
 #import <React/RCTLog.h>
 #import <react/renderer/components/rnscreens/Props.h>
 #import <react/renderer/components/rnscreens/RCTComponentViewHelpers.h>
-#import <react/utils/ManagedObjectWrapper.h>
 #import <react/renderer/components/rnscreens/RNSStackHeaderConfigComponentDescriptor.h>
+#import <react/utils/ManagedObjectWrapper.h>
 
 namespace react = facebook::react;
 
@@ -517,18 +516,20 @@ static void RNSAssertIsValidHeaderChild(UIView *child)
   if (self.superview == nil) {
     return nil;
   }
-  RCTAssert([self.superview isKindOfClass:RNSStackScreenComponentView.class],
-            @"[RNScreens] Header Config should be a direct child of RNSStackScreenComponentView");
-  RNSStackScreenComponentView *screen = (RNSStackScreenComponentView *)self.superview;
-  return screen.controller.headerCoordinator;
+  return [[self requireScreen] headerCoordinator];
+}
+
+- (UIView<RNSStackScreenProviding> *)requireScreen
+{
+  RCTAssert([self.superview conformsToProtocol:@protocol(RNSStackScreenProviding)],
+            @"[RNScreens] Header Config should be a direct child of a screen of a stack, got %@",
+            self.superview);
+  return (UIView<RNSStackScreenProviding> *)self.superview;
 }
 
 - (RNSStackNavigationController *)requireNavigationController
 {
-  RCTAssert([self.superview isKindOfClass:RNSStackScreenComponentView.class],
-            @"[RNScreens] Header Config should be a direct child of RNSStackScreenComponentView");
-  RNSStackScreenController *screenController = static_cast<RNSStackScreenComponentView *>(self.superview).controller;
-  UINavigationController *navController = screenController.navigationController;
+  UINavigationController *navController = [[self requireScreen] controller].navigationController;
   RCTAssert(navController != nil, @"[RNScreens] NavigationController should be initialized at this point");
   RCTAssert([navController isKindOfClass:RNSStackNavigationController.class],
             @"[RNScreens] NavigationController should be instance of RNSStackNavigationController");

@@ -40,11 +40,15 @@
 - (void)removeScreen:(nonnull UIView<RNSStackScreenProviding> *)screen
 {
   [_renderedScreens removeObject:screen];
-  if (screen.activityMode == RNSStackScreenActivityModeAttached && !screen.isNativelyDismissed) {
+  // A screen popped natively is out of the stack before its controller learns about it (e.g. the screens skipped by a
+  // pop to a lower screen), so the stack itself is the source of truth here.
+  BOOL isOnStack = [_navigationController.viewControllers containsObject:screen.controller];
+  if (screen.activityMode == RNSStackScreenActivityModeAttached && !screen.isNativelyDismissed && isOnStack) {
     // This shouldn't happen in typical scenarios but it can happen with fast-refresh.
     [self addPopOperation:screen];
   } else {
-    RNSLog(@"[RNScreens] ignoring pop operation of %@, already not attached or natively dismissed", screen.screenKey);
+    RNSLog(@"[RNScreens] ignoring pop operation of %@, already not attached, natively dismissed or off the stack",
+           screen.screenKey);
   }
 }
 

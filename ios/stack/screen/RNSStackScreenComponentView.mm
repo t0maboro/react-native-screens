@@ -128,6 +128,11 @@ namespace react = facebook::react;
   [super updateProps:props oldProps:oldProps];
 }
 
+- (nullable RNSStackScreenHeaderCoordinator *)headerCoordinator
+{
+  return _controller.headerCoordinator;
+}
+
 - (void)mountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
 {
   if ([childComponentView isKindOfClass:RNSStackHeaderConfigComponentView.class]) {

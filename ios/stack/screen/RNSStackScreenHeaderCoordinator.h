@@ -9,11 +9,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class RNSStackScreenController;
-
 @interface RNSStackScreenHeaderCoordinator : NSObject
 
-- (instancetype)initWithScreenController:(RNSStackScreenController *)controller;
+- (instancetype)initWithScreenController:(UIViewController *)controller;
 
 @property (nonatomic, weak, nullable) id<RNSStackHeaderConfigDataProviding> configDataProvider;
 @property (nonatomic, weak, nullable) id<RNSViewFrameChangeDelegate> frameChangeDelegate;
