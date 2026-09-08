@@ -1,21 +1,20 @@
-#import "RNSSplitNavigationControllerFrameObserver.h"
-#import "RNSSplitNavigationControllerFrameOriginChangeDelegate.h"
+#import "RNSSplitColumnFrameObserver.h"
+#import "RNSSplitColumnFrameObserverDelegate.h"
 
-static void *RNSSplitNavigationViewFrameContext = &RNSSplitNavigationViewFrameContext;
+static void *RNSSplitColumnViewFrameContext = &RNSSplitColumnViewFrameContext;
 
-@implementation RNSSplitNavigationControllerFrameObserver {
-  RNSSplitNavigationController *__weak _navigationController;
-  id<RNSSplitNavigationControllerFrameOriginChangeDelegate> __weak _frameOriginChangeDelegate;
+@implementation RNSSplitColumnFrameObserver {
+  UINavigationController *__weak _navigationController;
+  id<RNSSplitColumnFrameObserverDelegate> __weak _delegate;
   UIView *__weak _observedView;
 }
 
-- (instancetype)initWithSplitNavigationController:(RNSSplitNavigationController *)navigationController
-                                         delegate:(id<RNSSplitNavigationControllerFrameOriginChangeDelegate>)
-                                                      frameOriginChangeDelegate
+- (instancetype)initWithNavigationController:(UINavigationController *)navigationController
+                                    delegate:(id<RNSSplitColumnFrameObserverDelegate>)delegate
 {
   if (self = [super init]) {
     _navigationController = navigationController;
-    _frameOriginChangeDelegate = frameOriginChangeDelegate;
+    _delegate = delegate;
   }
 
   return self;
@@ -35,13 +34,13 @@ static void *RNSSplitNavigationViewFrameContext = &RNSSplitNavigationViewFrameCo
   [view addObserver:self
          forKeyPath:@"frame"
             options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
-            context:RNSSplitNavigationViewFrameContext];
+            context:RNSSplitColumnViewFrameContext];
   _observedView = view;
 }
 
 - (void)unregisterForViewFrameChanges
 {
-  [_observedView removeObserver:self forKeyPath:@"frame" context:RNSSplitNavigationViewFrameContext];
+  [_observedView removeObserver:self forKeyPath:@"frame" context:RNSSplitColumnViewFrameContext];
   _observedView = nil;
 }
 
@@ -50,7 +49,7 @@ static void *RNSSplitNavigationViewFrameContext = &RNSSplitNavigationViewFrameCo
                         change:(NSDictionary<NSKeyValueChangeKey, id> *)change
                        context:(void *)context
 {
-  if (context != RNSSplitNavigationViewFrameContext) {
+  if (context != RNSSplitColumnViewFrameContext) {
     [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     return;
   }
@@ -65,9 +64,9 @@ static void *RNSSplitNavigationViewFrameContext = &RNSSplitNavigationViewFrameCo
   CGRect newFrame = [newValue CGRectValue];
 
   if (!CGPointEqualToPoint(oldFrame.origin, newFrame.origin)) {
-    RNSSplitNavigationController *navigationController = _navigationController;
+    UINavigationController *navigationController = _navigationController;
     if (navigationController != nil) {
-      [_frameOriginChangeDelegate splitNavigationControllerFrameOriginDidChange:navigationController];
+      [_delegate frameObserver:self didChangeFrameOriginOfNavigationController:navigationController];
     }
   }
 }
