@@ -4,6 +4,8 @@
 #import <React/RCTSurfaceTouchHandler.h>
 #import <react/renderer/components/rnscreens/RNSSplitScreenComponentDescriptor.h>
 #import "RNSConversions.h"
+#import "RNSHeaderConfigComponentView.h"
+#import "RNSHeaderCoordinator.h"
 #import "RNSSafeAreaViewNotifications.h"
 #import "RNSSplitHostComponentView.h"
 #import "RNSSplitScreenComponentEventEmitter.h"
@@ -155,10 +157,9 @@ namespace react = facebook::react;
 
 #pragma mark - RNSStackScreenProviding
 
-- (nullable RNSHeaderConfigComponentView *)headerConfig
+- (nullable RNSHeaderCoordinator *)headerCoordinator
 {
-  // Column screens do not support a header config.
-  return nil;
+  return _controller.headerCoordinator;
 }
 
 #pragma mark - RNSSafeAreaProviding
@@ -195,6 +196,29 @@ namespace react = facebook::react;
   // There won't be tens of instances of this component usually & it's easier for now.
   // We could consider enabling it someday though.
   return NO;
+}
+
+- (void)mountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
+{
+  if ([childComponentView isKindOfClass:RNSHeaderConfigComponentView.class]) {
+    _headerConfig = (RNSHeaderConfigComponentView *)childComponentView;
+    _headerConfig.headerCoordinator = _controller.headerCoordinator;
+    _controller.headerCoordinator.configDataProvider = _headerConfig;
+    _controller.headerCoordinator.frameChangeDelegate = _headerConfig;
+    _controller.headerCoordinator.eventsDelegate = _headerConfig;
+    _controller.headerCoordinator.imageLoader = _headerConfig;
+  }
+  [super mountChildComponentView:childComponentView index:index];
+}
+
+- (void)unmountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index
+{
+  if ([childComponentView isKindOfClass:RNSHeaderConfigComponentView.class]) {
+    [_controller.headerCoordinator clearHeaderConfiguration];
+    _headerConfig.headerCoordinator = nil;
+    _headerConfig = nil;
+  }
+  [super unmountChildComponentView:childComponentView index:index];
 }
 
 - (void)updateState:(react::State::Shared const &)state oldState:(react::State::Shared const &)oldState

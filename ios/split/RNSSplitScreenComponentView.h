@@ -9,6 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class RNSSplitHostComponentView;
 @class RNSSplitScreenController;
+@class RNSHeaderConfigComponentView;
 
 /**
  * @class RNSSplitScreenComponentView
@@ -21,6 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong, readonly, nonnull) RNSSplitScreenController *controller;
 @property (nonatomic, weak, readwrite, nullable) RNSSplitHostComponentView *splitHost;
+@property (nonatomic, weak, readonly, nullable) RNSHeaderConfigComponentView *headerConfig;
 
 @end
 

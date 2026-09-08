@@ -1,6 +1,7 @@
 #import "RNSSplitScreenController.h"
 
 #import <React/RCTAssert.h>
+#import "RNSHeaderCoordinator.h"
 #import "RNSSplitHostComponentView.h"
 #import "RNSSplitHostController.h"
 #import "RNSSplitScreenComponentView.h"
@@ -13,6 +14,7 @@
 {
   if (self = [super init]) {
     _splitScreenComponentView = splitScreenComponentView;
+    _headerCoordinator = [[RNSHeaderCoordinator alloc] initWithScreenController:self];
   }
 
   return self;
@@ -91,6 +93,13 @@
 - (void)viewWillAppear:(BOOL)animated
 {
   [super viewWillAppear:animated];
+  // Without a header config the column keeps the system navigation bar, so the coordinator is not consulted.
+  if (_splitScreenComponentView.headerConfig != nil) {
+    [_headerCoordinator updateNavigationBarVisibilityAnimated:animated];
+#if !TARGET_OS_TV
+    [_headerCoordinator updateBackButtonMenuEnabled];
+#endif // !TARGET_OS_TV
+  }
   [_delegate splitScreenControllerWillAppear:self];
 }
 
@@ -119,6 +128,10 @@
   if (parent != nil) {
     return;
   }
+
+#if !TARGET_OS_TV
+  [_headerCoordinator clearAppliedBackButtonConfig];
+#endif // !TARGET_OS_TV
 
   // A screen React still expects on the stack left it natively (e.g. the back button); a detached one was popped on
   // React's request.

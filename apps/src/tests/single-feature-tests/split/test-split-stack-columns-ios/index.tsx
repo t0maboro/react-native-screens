@@ -68,6 +68,7 @@ function TestSplitStackColumns() {
             screenKey={screen.key}
             activityMode={screen.activityMode}
             onDismiss={() => remove(column, screen.key)}>
+            <Split.HeaderConfig title={title(screen.key)} />
             <ScreenContent
               title={title(screen.key)}
               hue={hue + index * 25}
