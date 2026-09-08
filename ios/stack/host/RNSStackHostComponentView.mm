@@ -134,9 +134,9 @@ namespace react = facebook::react;
 - (RNSStackHeaderConfigComponentView *)requireTopScreenHeaderConfig
 {
   UIViewController *topViewController = _stackCoordinator.navigationController.topViewController;
-  RCTAssert([topViewController.view isKindOfClass:[RNSStackScreenComponentView class]],
-            @"[RNScreens] Expected top screen to be a react component view of type RNSStackScreenComponentView");
-  auto screenView = (RNSStackScreenComponentView *)topViewController.view;
+  RCTAssert([topViewController.view conformsToProtocol:@protocol(RNSStackScreenProviding)],
+            @"[RNScreens] Expected top screen to be a react component view conforming to RNSStackScreenProviding");
+  auto screenView = static_cast<UIView<RNSStackScreenProviding> *>(topViewController.view);
 
   return screenView.headerConfig;
 }

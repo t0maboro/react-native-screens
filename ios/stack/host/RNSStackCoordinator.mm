@@ -3,10 +3,10 @@
 #import "RNSLog.h"
 #import "RNSStackNavigationController.h"
 #import "RNSStackOperation.h"
-#import "RNSStackScreenComponentView.h"
+#import "RNSStackScreenProviding.h"
 
 @implementation RNSStackCoordinator {
-  NSMutableArray<RNSStackScreenComponentView *> *_Nonnull _renderedScreens;
+  NSMutableArray<UIView<RNSStackScreenProviding> *> *_Nonnull _renderedScreens;
   NSMutableArray<RNSPushOperation *> *_Nonnull _pendingPushOperations;
   NSMutableArray<RNSPopOperation *> *_Nonnull _pendingPopOperations;
 }
@@ -29,7 +29,7 @@
 
 #pragma mark - Screens
 
-- (void)insertScreen:(nonnull RNSStackScreenComponentView *)screen atIndex:(NSInteger)index
+- (void)insertScreen:(nonnull UIView<RNSStackScreenProviding> *)screen atIndex:(NSInteger)index
 {
   [_renderedScreens insertObject:screen atIndex:index];
   if (screen.activityMode == RNSStackScreenActivityModeAttached) {
@@ -37,7 +37,7 @@
   }
 }
 
-- (void)removeScreen:(nonnull RNSStackScreenComponentView *)screen
+- (void)removeScreen:(nonnull UIView<RNSStackScreenProviding> *)screen
 {
   [_renderedScreens removeObject:screen];
   if (screen.activityMode == RNSStackScreenActivityModeAttached && !screen.isNativelyDismissed) {
@@ -48,7 +48,7 @@
   }
 }
 
-- (void)screenDidChangeActivityMode:(nonnull RNSStackScreenComponentView *)screen
+- (void)screenDidChangeActivityMode:(nonnull UIView<RNSStackScreenProviding> *)screen
 {
   RCTAssert(screen != nil, @"[RNScreens] Expected non nill stackScreen");
   switch (screen.activityMode) {
@@ -71,13 +71,13 @@
   return _pendingPushOperations.count > 0 || _pendingPopOperations.count > 0;
 }
 
-- (void)addPushOperation:(nonnull RNSStackScreenComponentView *)stackScreen
+- (void)addPushOperation:(nonnull UIView<RNSStackScreenProviding> *)stackScreen
 {
   RNSPushOperation *operation = [[RNSPushOperation alloc] initWithScreen:stackScreen];
   [_pendingPushOperations addObject:operation];
 }
 
-- (void)addPopOperation:(nonnull RNSStackScreenComponentView *)stackScreen
+- (void)addPopOperation:(nonnull UIView<RNSStackScreenProviding> *)stackScreen
 {
   RNSPopOperation *operation = [[RNSPopOperation alloc] initWithScreen:stackScreen];
   [_pendingPopOperations addObject:operation];
@@ -111,7 +111,7 @@
 /** @brief Orders the operations by the React index of their screens. */
 - (NSArray<RNSStackOperation *> *)orderedOperations:(nonnull NSMutableArray<RNSStackOperation *> *)operations
 {
-  NSArray<RNSStackScreenComponentView *> *renderedScreens = _renderedScreens;
+  NSArray<UIView<RNSStackScreenProviding> *> *renderedScreens = _renderedScreens;
   return [operations sortedArrayUsingComparator:^NSComparisonResult(RNSStackOperation *obj1, RNSStackOperation *obj2) {
     return [@([renderedScreens indexOfObject:obj1.stackScreen])
         compare:@([renderedScreens indexOfObject:obj2.stackScreen])];

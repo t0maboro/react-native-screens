@@ -1,7 +1,7 @@
 #pragma once
 
 #import "RNSStackNavigationController.h"
-#import "RNSStackScreenComponentView.h"
+#import "RNSStackScreenProviding.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -15,11 +15,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong, readonly, nonnull) RNSStackNavigationController *navigationController;
 
-- (void)insertScreen:(nonnull RNSStackScreenComponentView *)screen atIndex:(NSInteger)index;
+- (void)insertScreen:(nonnull UIView<RNSStackScreenProviding> *)screen atIndex:(NSInteger)index;
 
-- (void)removeScreen:(nonnull RNSStackScreenComponentView *)screen;
+- (void)removeScreen:(nonnull UIView<RNSStackScreenProviding> *)screen;
 
-- (void)screenDidChangeActivityMode:(nonnull RNSStackScreenComponentView *)screen;
+- (void)screenDidChangeActivityMode:(nonnull UIView<RNSStackScreenProviding> *)screen;
 
 /**
  * @brief Applies the pending push and pop operations, if any, to the navigation controller.

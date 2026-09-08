@@ -84,13 +84,13 @@
   return _pendingPushOperations.count > 0 || _pendingPopOperations.count > 0;
 }
 
-- (void)enqueuePushOperation:(nonnull RNSStackScreenComponentView *)stackScreen
+- (void)enqueuePushOperation:(nonnull UIView<RNSStackScreenProviding> *)stackScreen
 {
   RNSPushOperation *operation = [[RNSPushOperation alloc] initWithScreen:stackScreen];
   [_pendingPushOperations addObject:operation];
 }
 
-- (void)enqueuePopOperation:(nonnull RNSStackScreenComponentView *)stackScreen
+- (void)enqueuePopOperation:(nonnull UIView<RNSStackScreenProviding> *)stackScreen
 {
   RNSPopOperation *operation = [[RNSPopOperation alloc] initWithScreen:stackScreen];
   [_pendingPopOperations addObject:operation];
@@ -116,7 +116,7 @@
   }
 
   for (RNSPushOperation *op in _pendingPushOperations) {
-    RNSStackScreenController *controller = op.stackScreen.controller;
+    UIViewController *controller = op.stackScreen.controller;
     [self pushViewController:controller animated:YES];
   }
 
@@ -135,7 +135,7 @@
 #ifdef RNS_DEBUG_LOGGING
   RNSLog(@"[RNScreens] StackContainer [%ld] MODEL BEGIN", self.view.tag);
   for (UIViewController *viewController in self.viewControllers) {
-    RNSLog(@"[RNScreens] %@", static_cast<RNSStackScreenComponentView *>(viewController.view).screenKey);
+    RNSLog(@"[RNScreens] %@", static_cast<UIView<RNSStackScreenProviding> *>(viewController.view).screenKey);
   }
 #endif // RNS_DEBUG_LOGGING
 }
