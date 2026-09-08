@@ -7,6 +7,7 @@
 #import <optional>
 #import "RNSDefines.h"
 #import "RNSEnums.h"
+#import "RNSStackScreenProviding.h"
 #import "RNSTabsNavigationState.h"
 
 #import <folly/dynamic.h>
@@ -116,6 +117,9 @@ UIUserInterfaceStyle UIUserInterfaceStyleFromHostProp(react::RNSSplitHostColorSc
 #pragma mark SplitScreen props
 
 RNSSplitScreenColumnType RNSSplitScreenColumnTypeFromScreenProp(react::RNSSplitScreenColumnType columnType);
+
+RNSStackScreenActivityMode RNSStackScreenActivityModeFromSplitScreenProp(
+    react::RNSSplitScreenActivityMode activityMode);
 
 }; // namespace rnscreens::conversion
 

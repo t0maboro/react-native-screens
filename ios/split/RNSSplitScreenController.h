@@ -25,6 +25,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)splitScreenControllerDidAppear:(RNSSplitScreenController *)controller;
 - (void)splitScreenControllerWillDisappear:(RNSSplitScreenController *)controller;
 - (void)splitScreenControllerDidDisappear:(RNSSplitScreenController *)controller;
+/**
+ * @brief Called when the screen left the navigation stack of its column.
+ *
+ * @param isNativeDismiss YES when the screen was removed natively (e.g. by the back button) while React still
+ * expects it to be attached.
+ */
+- (void)splitScreenController:(RNSSplitScreenController *)controller didDismissNatively:(BOOL)isNativeDismiss;
 
 @end
 
@@ -51,8 +58,6 @@ NS_ASSUME_NONNULL_BEGIN
  * @return true if inside RNSSplitHostController, false otherwise.
  */
 - (BOOL)isInSplitHostSubtree;
-
-- (void)setNeedsLifecycleStateUpdate;
 
 #pragma mark - Layout
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #import <UIKit/UIKit.h>
+#import "RNSStackScreenProviding.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -8,11 +9,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  * @class RNSSplitColumnController
- * @brief Native owner of a Split column: the navigation controller installed in the UISplitViewController column and
- * the observation of its frame.
+ * @brief Native owner of a Split column: the navigation controller installed in the UISplitViewController column,
+ * the stack of screens shown in it and the observation of its frame.
  *
  * It has no React counterpart. The host creates one controller per column, installs its `navigationController` and
- * hands the column its screen controller.
+ * hands the screens of the column over. The column drives its stack the way `RNSStackHostComponentView` drives a
+ * standalone stack: it keeps the screens in React order and turns their mounts, unmounts and activity mode changes
+ * into operations of `RNSStackOperationCoordinator`.
  */
 @interface RNSSplitColumnController : NSObject
 
@@ -20,12 +23,18 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong, readonly, nonnull) UINavigationController *navigationController;
 
-- (instancetype)initWithScreenController:(UIViewController *)screenController;
+/** @brief Registers a screen mounted at `index` among the screens of the column; an attached one is pushed. */
+- (void)insertScreen:(UIView<RNSStackScreenProviding> *)screen atIndex:(NSInteger)index;
+
+/** @brief Unregisters an unmounted screen; one still on the stack is popped. */
+- (void)removeScreen:(UIView<RNSStackScreenProviding> *)screen;
+
+- (void)screenDidChangeActivityMode:(UIView<RNSStackScreenProviding> *)screen;
 
 /**
- * @brief Makes the given controller the root of the column's navigation stack. No-op when it already is.
+ * @brief Applies the pending push and pop operations to the navigation controller.
  */
-- (void)setScreenController:(UIViewController *)screenController;
+- (void)flushPendingUpdates;
 
 @end
 

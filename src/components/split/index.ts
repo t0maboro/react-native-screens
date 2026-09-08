@@ -17,11 +17,16 @@ export type {
 
 export type {
   SplitScreenColumnType,
+  SplitScreenActivityMode,
+  SplitScreenDismissEvent,
   SplitScreenProps,
+  SplitStackProps,
 } from './SplitScreen.types';
 
 export const Split = {
   Host: SplitHost,
   Column: SplitScreen.Column,
+  Stack: SplitScreen.Stack,
+  Screen: SplitScreen.Screen,
   Inspector: SplitScreen.Inspector,
 };
