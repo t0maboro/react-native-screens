@@ -11,7 +11,7 @@
 #import "RNSLog.h"
 
 #import "RNSContainerHelpers.h"
-#import "RNSStackHeaderConfigComponentView.h"
+#import "RNSHeaderConfigComponentView.h"
 #import "RNSStackNavigationController.h"
 #import "RNSStackOperationCoordinator.h"
 #import "RNSStackScreenComponentView.h"
@@ -65,7 +65,7 @@ namespace react = facebook::react;
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
   if (CGRectContainsPoint(_stackNavigationController.navigationBar.frame, point)) {
-    RNSStackHeaderConfigComponentView *headerConfig = [self requireTopScreenHeaderConfig];
+    RNSHeaderConfigComponentView *headerConfig = [self requireTopScreenHeaderConfig];
     CGPoint convertedPoint = [self convertPoint:point toView:headerConfig];
     UIView *headerHitTestResult = [headerConfig hitTest:convertedPoint withEvent:event];
     if (headerHitTestResult != nil) {
@@ -165,7 +165,7 @@ namespace react = facebook::react;
   ]];
 }
 
-- (RNSStackHeaderConfigComponentView *)requireTopScreenHeaderConfig
+- (RNSHeaderConfigComponentView *)requireTopScreenHeaderConfig
 {
   RCTAssert([_stackNavigationController.topViewController.view isKindOfClass:[RNSStackScreenComponentView class]],
             @"[RNScreens] Expected top screen to be a react component view of type RNSStackScreenComponentView");

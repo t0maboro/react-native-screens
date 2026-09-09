@@ -22,15 +22,15 @@ template <>
 RNSStackScreenActivityMode convert(react::RNSStackScreenActivityMode mode);
 
 template <>
-RNSHeaderItemPlacement convert(react::RNSStackHeaderItemIOSPlacement placement);
+RNSHeaderItemPlacement convert(react::RNSHeaderItemIOSPlacement placement);
 
 template <>
 RNSHeaderItemSpacerPlacement convert(
-    react::RNSStackHeaderItemSpacerIOSPlacement placement);
+    react::RNSHeaderItemSpacerIOSPlacement placement);
 
 template <>
 UINavigationItemBackButtonDisplayMode convert(
-    react::RNSStackHeaderConfigIOSBackButtonDisplayMode displayMode);
+    react::RNSHeaderConfigIOSBackButtonDisplayMode displayMode);
 
 }; // namespace rnscreens::conversion
 
