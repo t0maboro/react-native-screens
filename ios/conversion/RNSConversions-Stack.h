@@ -6,8 +6,10 @@
 #import <react/renderer/components/rnscreens/Props.h>
 #import "RNSHeaderItemPlacement.h"
 #import "RNSHeaderItemSpacerPlacement.h"
-#import "RNSStackScreenComponentView.h"
+#import "RNSStackScreenProviding.h"
 #import "always_false.h"
+
+namespace react = facebook::react;
 
 namespace rnscreens::conversion {
 

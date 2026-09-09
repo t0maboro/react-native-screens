@@ -11,6 +11,7 @@ let headerSearchPaths: [String] = [
     "ios/helpers/container",
     "ios/helpers/image",
     "ios/helpers/scroll-view",
+    "ios/helpers/stack",
     "ios/legacy",
     "ios/legacy/events",
     "ios/legacy/integrations",
